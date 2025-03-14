@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivia Bíblica</title>
+    <style>
+        :root {
+            --primary-color: #8b5d33;
+            --secondary-color: #d6ba8c;
+            --accent-color: #4a7c59;
+            --light-bg: #f9f5e9;
+            --dark-text: #333;
+            --light-text: #fff;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), 
+                              url('/api/placeholder/1200/800');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .header {
+            position: relative;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+        .header::after {
+            content: "";
+            position: absolute;
+            bottom: -2px;
+            left: 25%;
+            width: 50%;
+            height: 2px;
+            background-color: var(--primary-color);
+        }
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+        .timer-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .timer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 1.8rem;
+            display: inline-block;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            min-width: 120px;
+            position: relative;
+            overflow: hidden;
+        }
+        .timer::before {
+            content: "⏱️";
+            margin-right: 10px;
+            font-size: 1.5rem;
+            vertical-align: middle;
+        }
+        .question-container {
+            background-color: var(--light-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            text-align: left;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            position: relative;
+            border-left: 5px solid var(--primary-color);
+        }
+        .question {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            font-weight: 500;
+            color: var(--dark-text);
+            line-height: 1.4;
+        }
+        .answers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        @media (max-width: 600px) {
+            .answers {
+                grid-template-columns: 1fr;
+            }
+        }
+        .answer-btn {
+            background-color: white;
+            border: 2px solid var(--secondary-color);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .answer-btn:hover {
+            background-color: var(--secondary-color);
+            color: var(--dark-text);
+            transform: translateY(-2px);
+        }
+        .answer-btn.correct {
+            background-color: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+        .answer-btn.incorrect {
+            background-color: #f44336;
+            color: white;
+            border-color: #f44336;
+        }
+        .answer-letter {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            background-color: var(--secondary-color);
+            color: var(--dark-text);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .score-container {
+            margin: 20px 0;
+            font-size: 1.3rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .score {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:hover {
+            background-color: #6d4a29;
+            transform: translateY(-3px);
+        }
+        .btn:active {
+            transform: translateY(1px);
+        }
+        .game-over {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+        .game-over h2 {
+            color: var(--primary-color);
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+        }
+        .reference {
+            font-style: italic;
+            color: #777;
+            margin-top: 8px;
+            font-size: 0.95rem;
+            text-align: right;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+            height: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 100%;
+            transition: width 1s linear;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background-color: var(--light-bg);
+            border-radius: 10px;
+            min-width: 120px;
+            margin: 10px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 5px 0;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .pulse {
+            animation: pulse 0.6s ease-in-out;
+        }
+        .feedback {
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none;
+        }
+        .correct-feedback {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #2e7d32;
+        }
+        .incorrect-feedback {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #c62828;
+        }
+        .intro-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .verse-decoration {
+            font-style: italic;
+            color: var(--primary-color);
+            margin: 25px 0;
+            padding: 15px;
+            border-left: 3px solid var(--primary-color);
+            background-color: var(--light-bg);
+            border-radius: 0 10px 10px 0;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>  
+    <div class="container">
+        <div class="header">
+            <h1>Trivia Bíblica</h1>
+            <p class="subtitle">Pon a prueba tu conocimiento de las Escrituras</p>
+        </div>
+        
+        <div id="intro">
+            <div class="intro-text">
+                <p>Tienes <strong>3 minutos</strong> para responder la mayor cantidad de preguntas sobre la Biblia.</p>
+                <p>Las preguntas incluyen versículos, parábolas, personajes y eventos de toda la Biblia.</p>
+            </div>
+            
+            <div class="verse-decoration">
+                "Lámpara es a mis pies tu palabra, y lumbrera a mi camino." - Salmo 119:105
+            </div>
+
+            <button class="btn" id="start-btn">Comenzar</button>
+        </div>
+        
+        <div id="game" style="display: none;">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <div class="timer-container">
+                <div class="timer" id="timer">03:00</div>
+            </div>
+            
+            <div class="score-container">
+                Puntuación: <span id="score" class="score">0</span>
+            </div>
+            
+            <div id="feedback" class="feedback"></div>
+            
+            <div class="question-container">
+                <div class="question" id="question"></div>
+                <div class="answers" id="answers"></div>
+                <div class="reference" id="reference"></div>
+            </div>
+        </div>
+        
+        <div id="game-over" class="game-over">
+            <h2>¡Se acabó el tiempo!</h2>
+            <p>Tu puntuación final es: <span id="final-score" class="score">0</span></p>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="correct-count">0</div>
+                    <div class="stat-label">Correctas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="incorrect-count">0</div>
+                    <div class="stat-label">Incorrectas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="accuracy">0%</div>
+                    <div class="stat-label">Precisión</div>
+                </div>
+            </div>
+            
+            <button class="btn" id="restart-btn">Jugar de nuevo</button>
+        </div>
+    
+    </div>
+    
+<body>
+    <script>
+        // Base de datos de preguntas de trivia bíblica
+        const triviaData = [
+            {
+                question: "¿Quién dijo: 'El Señor es mi pastor, nada me falta'?",
+                reference: "Salmos 23:1",
+                answers: ["David", "Moisés", "Salomón", "Isaías"],
+                correct: 0
+            },
+            {
+                question: "¿En qué monte recibió Moisés los Diez Mandamientos?",
+                reference: "Éxodo 19-20",
+                answers: ["Monte Sinaí", "Monte Nebo", "Monte Hermón", "Monte Carmelo"],
+                correct: 0
+            },
+            {
+                question: "¿Cuál de estas no es una de las Bienaventuranzas?",
+                reference: "Mateo 5:3-12",
+                answers: ["Bienaventurados los misericordiosos", "Bienaventurados los que trabajan duro", "Bienaventurados los mansos", "Bienaventurados los pobres en espíritu"],
+                correct: 1
+            },
+            {
+                question: "¿Qué discípulo negó a Jesús tres veces?",
+                reference: "Mateo 26:69-75",
+                answers: ["Juan", "Pedro", "Tomás", "Judas"],
+                correct: 1
+            },
+            {
+                question: "¿Cuántos días y noches estuvo Jonás en el vientre del gran pez?",
+                reference: "Jonás 1:17",
+                answers: ["3 días y 3 noches", "7 días y 7 noches", "40 días y 40 noches", "1 día y 1 noche"],
+                correct: 0
+            },
+            {
+                question: "¿Cuál de estos no es uno de los cuatro evangelios?",
+                reference: "Nuevo Testamento",
+                answers: ["Mateo", "Marcos", "Timoteo", "Juan"],
+                correct: 2
+            },
+            {
+                question: "En la parábola del hijo pródigo, ¿qué hizo el padre cuando vio a su hijo regresar?",
+                reference: "Lucas 15:11-32",
+                answers: ["Lo ignoró", "Lo castigó", "Corrió a su encuentro", "Le pidió que trabajara en el campo"],
+                correct: 2
+            },
+            {
+                question: "¿Quién fue llevado al cielo en un carro de fuego?",
+                reference: "2 Reyes 2:11",
+                answers: ["Moisés", "Elías", "Enoc", "Ezequiel"],
+                correct: 1
+            },
+            {
+                question: "¿Quién fue el primer rey de Israel?",
+                reference: "1 Samuel 10",
+                answers: ["David", "Saúl", "Salomón", "Samuel"],
+                correct: 1
+            },
+            {
+                question: "¿Qué construyó Noé según las instrucciones de Dios?",
+                reference: "Génesis 6",
+                answers: ["Un templo", "Un altar", "Un arca", "Una torre"],
+                correct: 2
+            },
+            {
+                question: "¿Qué nombre recibió Jacob después de luchar con el ángel?",
+                reference: "Génesis 32:28",
+                answers: ["Abraham", "Isaac", "Israel", "Judá"],
+                correct: 2
+            },
+            {
+                question: "¿Quién interpretó los sueños del faraón en Egipto?",
+                reference: "Génesis 41",
+                answers: ["José", "Daniel", "Jacob", "Moisés"],
+                correct: 0
+            },
+            {
+                question: "¿Cuál fue la primera plaga de Egipto?",
+                reference: "Éxodo 7:14-25",
+                answers: ["Ranas", "Langostas", "Agua convertida en sangre", "Oscuridad"],
+                correct: 2
+            },
+            {
+                question: "¿Con qué animal se compara Jesús a sí mismo como el buen...?",
+                reference: "Juan 10:11",
+                answers: ["León", "Cordero", "Pastor", "Águila"],
+                correct: 2
+            },
+            {
+                question: "¿En qué ciudad nació Jesús?",
+                reference: "Lucas 2:1-7",
+                answers: ["Nazaret", "Jerusalén", "Belén", "Galilea"],
+                correct: 2
+            },
+            {
+                question: "¿Qué apóstol dudó de la resurrección de Jesús hasta ver sus heridas?",
+                reference: "Juan 20:24-29",
+                answers: ["Pedro", "Juan", "Tomás", "Mateo"],
+                correct: 2
+            },
+            {
+                question: "¿Cuál de estos no es un fruto del Espíritu mencionado por Pablo?",
+                reference: "Gálatas 5:22-23",
+                answers: ["Amor", "Inteligencia", "Paciencia", "Bondad"],
+                correct: 1
+            },
+            {
+                question: "¿Quién fue arrojado a un foso de leones pero salió ileso?",
+                reference: "Daniel 6",
+                answers: ["Daniel", "David", "Sansón", "Pablo"],
+                correct: 0
+            },
+            {
+                question: "¿Qué instrumento musical tocaba David?",
+                reference: "1 Samuel 16:23",
+                answers: ["Trompeta", "Tambor", "Arpa", "Flauta"],
+                correct: 2
+            },
+            {
+                question: "En la parábola del sembrador, ¿qué representa la semilla?",
+                reference: "Mateo 13:1-23",
+                answers: ["El dinero", "La fe", "La Palabra de Dios", "Los dones espirituales"],
+                correct: 2
+            },
+            {
+                question: "¿Quién escribió la mayoría de los Salmos?",
+                reference: "Libro de los Salmos",
+                answers: ["Salomón", "Moisés", "David", "Isaías"],
+                correct: 2
+            },
+            {
+                question: "¿Cuántos libros tiene el Nuevo Testamento?",
+                reference: "Biblia",
+                answers: ["39", "27", "46", "33"],
+                correct: 1
+            },
+            {
+                question: "¿Qué construyeron los hombres para llegar al cielo según Génesis?",
+                reference: "Génesis 11:1-9",
+                answers: ["Un monte", "Una escalera", "Una torre", "Un templo"],
+                correct: 2
+            },
+            {
+                question: "¿Quién dijo: 'He peleado la buena batalla, he acabado la carrera, he guardado la fe'?",
+                reference: "2 Timoteo 4:7",
+                answers: ["Pedro", "Pablo", "Juan", "Santiago"],
+                correct: 1
+            },
+            {
+                question: "¿Cuál es el último libro de la Biblia?",
+                reference: "Biblia",
+                answers: ["Daniel", "Apocalipsis", "Hechos", "Hebreos"],
+                correct: 1
+            },
+            {
+                question: "¿Quién fue tragado por un gran pez?",
+                reference: "Jonás 1-2",
+                answers: ["Jonás", "Job", "Jeremías", "Juan"],
+                correct: 0
+            },
+            {
+                question: "¿Qué profeta fue llevado al cielo sin experimentar la muerte?",
+                reference: "Génesis 5:24",
+                answers: ["Elías", "Enoc", "Ezequiel", "Eliseo"],
+                correct: 1
+            },
+            {
+                question: "¿Qué apóstol era recaudador de impuestos antes de seguir a Jesús?",
+                reference: "Mateo 9:9",
+                answers: ["Pedro", "Juan", "Mateo", "Andrés"],
+                correct: 2
+            },
+            {
+                question: "¿Qué objeto utilizó Moisés para dividir el Mar Rojo?",
+                reference: "Éxodo 14:16",
+                answers: ["Una espada", "Su mano", "Una vara", "Un cáliz"],
+                correct: 2
+            },
+            {
+                question: "¿Cuál de estas mujeres no fue esposa de Jacob?",
+                reference: "Génesis 29-30",
+                answers: ["Raquel", "Lea", "Bilha", "Sara"],
+                correct: 3
+            },
+            {
+                question: "En la parábola de los talentos, ¿qué hizo el siervo que recibió un talento?",
+                reference: "Mateo 25:14-30",
+                answers: ["Lo invirtió y ganó más", "Lo compartió con los pobres", "Lo escondió en la tierra", "Lo gastó todo"],
+                correct: 2
+            },
+            {
+                question: "¿Quién fue el primer mártir cristiano según Hechos?",
+                reference: "Hechos 7",
+                answers: ["Pablo", "Pedro", "Santiago", "Esteban"],
+                correct: 3
+            },
+            {
+        question: "¿Cuál es el primer libro de la Biblia?",
+        reference: "Pentateuco",
+        answers: ["Éxodo", "Génesis", "Levítico", "Números"],
+        correct: 1
+    },
+    {
+        question: "¿Cuál es el río donde Jesús fue bautizado?",
+        reference: "Mateo 3:13-17",
+        answers: ["Río Jordán", "Río Nilo", "Río Tigris", "Río Éufrates"],
+        correct: 0
+    },
+    {
+        question: "¿Qué profeta fue arrojado a un pozo de lodo?",
+        reference: "Jeremías 38:6",
+        answers: ["Isaías", "Jeremías", "Ezequiel", "Amós"],
+        correct: 1
+    },
+    {
+        question: "¿Cuál fue la primera ciudad conquistada por los israelitas en Canaán?",
+        reference: "Josué 6",
+        answers: ["Jericó", "Hai", "Jerusalén", "Belén"],
+        correct: 0
+    },
+    {
+        question: "¿Qué instrumento utilizó David para matar a Goliat?",
+        reference: "1 Samuel 17:49",
+        answers: ["Espada", "Lanza", "Honda", "Arco y flecha"],
+        correct: 2
+    },
+    {
+        question: "¿Cuántos capítulos tiene el libro de los Salmos?",
+        reference: "Libro de los Salmos",
+        answers: ["100", "119", "150", "176"],
+        correct: 2
+    },
+    {
+        question: "¿En qué ciudad nació el rey David?",
+        reference: "1 Samuel 16:1",
+        answers: ["Jerusalén", "Belén", "Nazaret", "Hebrón"],
+        correct: 1
+    },
+    {
+        question: "¿Qué hermano de Moisés se convirtió en el primer sumo sacerdote?",
+        reference: "Éxodo 28:1",
+        answers: ["Aarón", "Nadab", "Abiú", "Coré"],
+        correct: 0
+    },
+    {
+        question: "En la parábola del buen samaritano, ¿quiénes pasaron de largo sin ayudar al herido?",
+        reference: "Lucas 10:25-37",
+        answers: ["Un sacerdote y un comerciante", "Un levita y un sacerdote", "Un fariseo y un saduceo", "Un escriba y un levita"],
+        correct: 1
+    },
+    {
+        question: "¿Cuál es el único libro profético del Nuevo Testamento?",
+        reference: "Nuevo Testamento",
+        answers: ["Hechos", "Hebreos", "Apocalipsis", "Judas"],
+        correct: 2
+    },
+    {
+        question: "¿Qué discípulo caminó sobre las aguas con Jesús?",
+        reference: "Mateo 14:22-33",
+        answers: ["Juan", "Santiago", "Pedro", "Andrés"],
+        correct: 2
+    },
+    {
+        question: "¿Quién fue el padre de Abraham?",
+        reference: "Génesis 11:26",
+        answers: ["Noé", "Sem", "Taré", "Nacor"],
+        correct: 2
+    },
+    {
+        question: "¿Qué libro contiene la frase 'Vanidad de vanidades, todo es vanidad'?",
+        reference: "Eclesiastés 1:2",
+        answers: ["Proverbios", "Eclesiastés", "Lamentaciones", "Job"],
+        correct: 1
+    },
+    {
+        question: "¿Quién fue el primer juez de Israel?",
+        reference: "Jueces 3:9",
+        answers: ["Gedeón", "Sansón", "Otoniel", "Débora"],
+        correct: 2
+    },
+    {
+        question: "¿Qué instrumento tocaba David para calmar a Saúl?",
+        reference: "1 Samuel 16:23",
+        answers: ["Tambor", "Flauta", "Arpa", "Címbalos"],
+        correct: 2
+    },
+    {
+        question: "¿Cuántos capítulos tiene el libro de Apocalipsis?",
+        reference: "Apocalipsis",
+        answers: ["12", "22", "27", "40"],
+        correct: 1
+    },
+    {
+        question: "¿Quién fue la primera mujer juez de Israel?",
+        reference: "Jueces 4:4",
+        answers: ["Noemí", "Débora", "Rut", "Ana"],
+        correct: 1
+    },
+    {
+        question: "¿Cuál de estos no es uno de los profetas menores?",
+        reference: "Profetas Menores",
+        answers: ["Habacuc", "Zacarías", "Jeremías", "Miqueas"],
+        correct: 2
+    },
+    {
+        question: "¿Qué ciudad fue reconstruida por Nehemías?",
+        reference: "Nehemías 1-7",
+        answers: ["Babilonia", "Jerusalén", "Samaria", "Jericó"],
+        correct: 1
+    },
+    {
+        question: "¿Con qué alimento alimentó Eliseo a 100 hombres milagrosamente?",
+        reference: "2 Reyes 4:42-44",
+        answers: ["Pan y peces", "Maná", "Codornices", "Veinte panes de cebada"],
+        correct: 3
+    },
+    {
+        question: "¿Quién fue el padre de Salomón?",
+        reference: "2 Samuel 12:24",
+        answers: ["Saúl", "David", "Josías", "Roboam"],
+        correct: 1
+    },
+    {
+        question: "¿Quién fue la esposa de Abraham y madre de Isaac?",
+        reference: "Génesis 21:3",
+        answers: ["Raquel", "Agar", "Sara", "Rebeca"],
+        correct: 2
+    },
+    {
+        question: "¿En qué libro se narra la historia de Ester?",
+        reference: "Libro de Ester",
+        answers: ["Ester", "Rut", "Jueces", "Crónicas"],
+        correct: 0
+    },
+    {
+        question: "¿Qué rey de Babilonia tuvo un sueño interpretado por Daniel?",
+        reference: "Daniel 2",
+        answers: ["Nabucodonosor", "Ciro", "Darío", "Asuero"],
+        correct: 0
+    },
+    {
+        question: "¿Cuántos hijos tuvo Jacob?",
+        reference: "Génesis 35:22-26",
+        answers: ["10", "12", "7", "14"],
+        correct: 1
+    },
+    {
+        question: "¿Qué apóstol era médico?",
+        reference: "Colosenses 4:14",
+        answers: ["Marcos", "Lucas", "Mateo", "Felipe"],
+        correct: 1
+    },
+    {
+        question: "¿Cuál fue la ocupación de Lidia, la primera conversa europea?",
+        reference: "Hechos 16:14",
+        answers: ["Tejedora", "Vendedora de púrpura", "Médica", "Pescadora"],
+        correct: 1
+    },
+    {
+        question: "¿Quién dijo: 'Aquí estoy, envíame a mí'?",
+        reference: "Isaías 6:8",
+        answers: ["Moisés", "Jeremías", "Isaías", "Samuel"],
+        correct: 2
+    },
+    {
+        question: "¿Cuál era la profesión de Zaqueo?",
+        reference: "Lucas 19:1-10",
+        answers: ["Pescador", "Carpintero", "Cobrador de impuestos", "Escriba"],
+        correct: 2
+    },
+    {
+        question: "¿Qué profeta fue comisionado cuando un serafín tocó sus labios con un carbón encendido?",
+        reference: "Isaías 6:6-7",
+        answers: ["Ezequiel", "Jeremías", "Isaías", "Amós"],
+        correct: 2
+    },
+    {
+        question: "¿Quién fue el hombre más anciano mencionado en la Biblia?",
+        reference: "Génesis 5:27",
+        answers: ["Adán", "Noé", "Set", "Matusalén"],
+        correct: 3
+    },
+    {
+        question: "¿Qué profeta se alimentó de langostas y miel silvestre?",
+        reference: "Mateo 3:4",
+        answers: ["Elías", "Juan el Bautista", "Jeremías", "Amós"],
+        correct: 1
+    },
+    {
+        question: "¿Qué mujer escondió a dos espías israelitas en Jericó?",
+        reference: "Josué 2:1-6",
+        answers: ["Rahab", "Débora", "Jael", "María"],
+        correct: 0
+    },
+    {
+        question: "¿Cuál es la epístola más corta del Nuevo Testamento?",
+        reference: "Nuevo Testamento",
+        answers: ["Filemón", "3 Juan", "Judas", "2 Juan"],
+        correct: 3
+    },
+    {
+        question: "¿Qué rey de Israel construyó el primer templo en Jerusalén?",
+        reference: "1 Reyes 6",
+        answers: ["David", "Salomón", "Roboam", "Ezequías"],
+        correct: 1
+    },
+    {
+        question: "¿Qué animal habló con Balaam?",
+        reference: "Números 22:28-30",
+        answers: ["Cabra", "Asna", "Camello", "Buey"],
+        correct: 1
+    },
+    {
+        question: "¿Quién dijo: 'Si perezco, que perezca'?",
+        reference: "Ester 4:16",
+        answers: ["Rut", "Débora", "Ester", "Raquel"],
+        correct: 2
+    },
+    {
+        question: "¿Qué ciudad visitaba Pablo cuando quedó ciego temporalmente?",
+        reference: "Hechos 9:3-9",
+        answers: ["Jerusalén", "Damasco", "Antioquía", "Corinto"],
+        correct: 1
+    },
+    {
+        question: "¿Qué discípulos presenciaron la transfiguración de Jesús?",
+        reference: "Mateo 17:1-9",
+        answers: ["Pedro, Santiago y Juan", "Pedro, Andrés y Mateo", "Juan, Santiago y Tomás", "Pedro, Felipe y Bartolomé"],
+        correct: 0
+    },
+    {
+        question: "¿Cuántos libros tiene el Antiguo Testamento?",
+        reference: "Biblia",
+        answers: ["27", "39", "46", "66"],
+        correct: 1
+    },
+    {
+        question: "¿Qué profeta fue llamado mientras araba la tierra?",
+        reference: "1 Reyes 19:19",
+        answers: ["Eliseo", "Samuel", "Jeremías", "Amós"],
+        correct: 0
+    },
+    {
+        question: "¿Quién le dijo a Moisés 'quítate las sandalias de los pies, porque el lugar en que estás es tierra santa'?",
+        reference: "Éxodo 3:5",
+        answers: ["Aarón", "El Señor", "Un ángel", "El faraón"],
+        correct: 1
+    },
+    {
+        question: "¿Cuántas personas fueron salvadas en el arca de Noé?",
+        reference: "Génesis 7:13, 1 Pedro 3:20",
+        answers: ["6", "8", "10", "12"],
+        correct: 1
+    },
+    {
+        question: "¿A qué tribu de Israel pertenecía el apóstol Pablo?",
+        reference: "Filipenses 3:5",
+        answers: ["Judá", "Leví", "Benjamín", "Dan"],
+        correct: 2
+    },
+    {
+        question: "¿Quién dijo: 'Habla, Señor, que tu siervo escucha'?",
+        reference: "1 Samuel 3:10",
+        answers: ["David", "Samuel", "Elí", "Saúl"],
+        correct: 1
+    },
+    {
+        question: "¿Qué libro contiene el versículo 'El justo por su fe vivirá'?",
+        reference: "Habacuc 2:4",
+        answers: ["Romanos", "Habacuc", "Isaías", "Gálatas"],
+        correct: 1
+    },
+    {
+        question: "¿Cuál rey fue encontrado tejiendo telarañas en una cueva?",
+        reference: "1 Samuel 24:3-7",
+        answers: ["David", "Saúl", "Salomón", "Ninguno, esto no está en la Biblia"],
+        correct: 3
+    },
+    {
+        question: "¿Quién escribió la mayor parte del libro de los Salmos?",
+        reference: "Libro de los Salmos",
+        answers: ["Moisés", "Salomón", "David", "Asaf"],
+        correct: 2
+    },
+    {
+        question: "¿Qué mujer fue convertida en estatua de sal?",
+        reference: "Génesis 19:26",
+        answers: ["La esposa de Lot", "La esposa de Abraham", "La hija de Lot", "Ninguna mujer fue convertida en sal"],
+        correct: 0
+    },
+    {
+        question: "¿Cuál es el versículo más corto de la Biblia?",
+        reference: "Juan 11:35",
+        answers: ["Jesús lloró", "Regocijaos siempre", "Dios es amor", "Orad sin cesar"],
+        correct: 0
+    },
+    {
+        question: "¿Qué animal le proveyó vestiduras a Juan el Bautista?",
+        reference: "Mateo 3:4",
+        answers: ["León", "Oveja", "Camello", "Cabra"],
+        correct: 2
+    },
+    {
+        question: "¿Qué profeta fue llevado al cielo en un torbellino?",
+        reference: "2 Reyes 2:11",
+        answers: ["Enoc", "Elías", "Moisés", "Eliseo"],
+        correct: 1
+    },
+    {
+        question: "¿Quién fue el primer mártir del Nuevo Testamento?",
+        reference: "Hechos 7:54-60",
+        answers: ["Santiago", "Juan el Bautista", "Pedro", "Esteban"],
+        correct: 3
+    },
+    {
+        question: "¿Quién le dijo a Jesús: 'Señor mío y Dios mío'?",
+        reference: "Juan 20:28",
+        answers: ["Pedro", "María Magdalena", "Tomás", "Juan"],
+        correct: 2
+    },
+    {
+        question: "¿Qué patriarca tenía un manto de muchos colores?",
+        reference: "Génesis 37:3",
+        answers: ["Jacob", "José", "Esaú", "Rubén"],
+        correct: 1
+    },
+    {
+        question: "¿Qué apóstol era pescador antes de seguir a Jesús?",
+        reference: "Mateo 4:18",
+        answers: ["Pablo", "Pedro", "Mateo", "Felipe"],
+        correct: 1
+    },
+    {
+        question: "¿Cuántos días ayunó Jesús en el desierto?",
+        reference: "Mateo 4:2",
+        answers: ["7", "21", "40", "50"],
+        correct: 2
+    },
+    {
+        question: "¿Quién fue el sucesor de Moisés?",
+        reference: "Josué 1:1-2",
+        answers: ["Aarón", "Caleb", "Josué", "Eleazar"],
+        correct: 2
+    },
+    {
+        question: "¿En qué monte murió Moisés?",
+        reference: "Deuteronomio 34:1-5",
+        answers: ["Monte Sinaí", "Monte Nebo", "Monte Horeb", "Monte Carmelo"],
+        correct: 1
+    }
+];
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Elementos del DOM
+    const gameEl = document.getElementById('game');
+    const introEl = document.getElementById('intro');
+    const gameOverEl = document.getElementById('game-over');
+    const startBtn = document.getElementById('start-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const questionEl = document.getElementById('question');
+    const answersEl = document.getElementById('answers');
+    const referenceEl = document.getElementById('reference');
+    const scoreEl = document.getElementById('score');
+    const finalScoreEl = document.getElementById('final-score');
+    const timerEl = document.getElementById('timer');
+    const progressBarEl = document.getElementById('progress-bar');
+    const feedbackEl = document.getElementById('feedback');
+    const correctCountEl = document.getElementById('correct-count');
+    const incorrectCountEl = document.getElementById('incorrect-count');
+    const accuracyEl = document.getElementById('accuracy');
+
+    // Variables del juego
+    let currentQuestion = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 180;
+    let answeredQuestions = [];
+    let correctAnswers = 0;
+    let incorrectAnswers = 0;
+    let isAnswerSelected = false;
+
+    // Asegurarse de que el juego esté oculto al inicio
+    gameEl.style.display = 'none';
+    gameOverEl.style.display = 'none';
+    introEl.style.display = 'block';
+
+    function startGame() {
+        // Reiniciar variables
+        score = 0;  // Remove extra curly brace and semicolon
+        timeLeft = 180;
+        answeredQuestions = [];
+        correctAnswers = 0;
+        incorrectAnswers = 0;
+    
+        // Actualizar UI
+        introEl.style.display = 'none';
+        gameEl.style.display = 'block';
+        gameOverEl.style.display = 'none';
+        scoreEl.textContent = '0';
+    
+        // Iniciar juego
+        showQuestion();
+        startTimer();
+    }
+
+    function showQuestion() {
+        isAnswerSelected = false;
+        
+        // Seleccionar pregunta aleatoria
+        let randomIndex;
+        do {
+            randomIndex = Math.floor(Math.random() * triviaData.length);
+        } while (answeredQuestions.includes(randomIndex) && answeredQuestions.length < triviaData.length);
+        
+        if (answeredQuestions.length >= triviaData.length) {
+            answeredQuestions = [];
+        }
+        
+        currentQuestion = randomIndex;
+        answeredQuestions.push(currentQuestion);
+        
+        const question = triviaData[currentQuestion];
+        
+        // Mostrar pregunta
+        questionEl.textContent = question.question;
+        referenceEl.textContent = question.reference;
+        answersEl.innerHTML = '';
+        
+        // Crear botones de respuesta
+        const letters = ['A', 'B', 'C', 'D'];
+        question.answers.forEach((answer, index) => {
+            const button = document.createElement('button');
+            button.className = 'answer-btn';
+            button.innerHTML = `<span class="answer-letter">${letters[index]}</span> ${answer}`;
+            button.dataset.index = index;
+            button.addEventListener('click', checkAnswer);
+            answersEl.appendChild(button);
+        });
+        
+        feedbackEl.style.display = 'none';
+    }
+
+    function checkAnswer(event) {
+        if (isAnswerSelected) return;
+        isAnswerSelected = true;
+        
+        const selectedIndex = parseInt(event.currentTarget.dataset.index);
+        const question = triviaData[currentQuestion];
+        
+        const buttons = answersEl.querySelectorAll('.answer-btn');
+        buttons[question.correct].classList.add('correct');
+        
+        if (selectedIndex === question.correct) {
+            score += 10;
+            correctAnswers++;
+            scoreEl.textContent = score;
+            feedbackEl.textContent = '¡Correcto!';
+            feedbackEl.className = 'feedback correct-feedback';
+        } else {
+            incorrectAnswers++;
+            event.currentTarget.classList.add('incorrect');
+            feedbackEl.textContent = '¡Incorrecto!';
+            feedbackEl.className = 'feedback incorrect-feedback';
+        }
+        
+        feedbackEl.style.display = 'block';
+        
+        setTimeout(showQuestion, 1500);
+    }
+
+    function startTimer() {
+        updateTimerDisplay();
+        timer = setInterval(() => {
+            timeLeft--;
+            updateTimerDisplay();
+            
+            const percentage = (timeLeft / 180) * 100;
+            progressBarEl.style.width = `${percentage}%`;
+            
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 10) {
+            timerEl.classList.add('pulse');
+        } else {
+            timerEl.classList.remove('pulse');
+        }
+    }
+
+    function endGame() {
+        clearInterval(timer);
+        gameEl.style.display = 'none';
+        gameOverEl.style.display = 'block';
+        
+        finalScoreEl.textContent = score;
+        correctCountEl.textContent = correctAnswers;
+        incorrectCountEl.textContent = incorrectAnswers;
+        
+        const totalAnswered = correctAnswers + incorrectAnswers;
+        const accuracy = totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0;
+        accuracyEl.textContent = `${accuracy}%`;
+    }
+
+    // Event Listeners
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', startGame);
+});
+</script>
